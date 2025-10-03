@@ -176,6 +176,22 @@
     <div id="manager-control" class="page">
       <h2>Manager Control</h2>
 
+      <h3>Create User</h3>
+      <div class="form-group"><label>Username</label><input type="text" id="new-username" /></div>
+      <div class="form-group"><label>Password</label><input type="password" id="new-password" /></div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="user-department"></select>
+      </div>
+      <div class="form-group">
+        <label>Contract</label>
+        <select id="contract">
+          <option value="CEVA">CEVA</option>
+          <option value="AMWAY">AMWAY</option>
+        </select>
+      </div>
+      <button onclick="createUser()">Create User</button>
+
       <h3>Add Department</h3>
       <div class="form-group">
         <label>Department Name</label>
@@ -217,6 +233,7 @@
         <h3>Notes</h3>
         <ul>
           <li>Status Colors: Open (yellow), In Progress (orange), Complete (green).</li>
+          <li>CEVA users see CEVA + synced Amway tasks. Amway users see Amway tasks only.</li>
           <li>Incharge Person, Assign To, Status, and Update Remark are editable by all users.</li>
           <li>Only the task creator can complete tasks.</li>
           <li>Completed tasks are archived in Firestore for 6 months.</li>
@@ -633,6 +650,30 @@
     }
 
     // ---------- Manager Control ----------
+    async function createUser() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const unameRaw = document.getElementById("new-username").value.trim();
+      const uname = unameRaw.toLowerCase();
+      const pwd = document.getElementById("new-password").value.trim();
+      const dept = document.getElementById("user-department").value;
+      const contract = document.getElementById("contract").value;
+      if (!uname || !pwd || !dept) return alert("Please enter username, password, and department");
+
+      try {
+        const userRef = doc(db, "users", uname);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) return alert("User already exists");
+        const user = { username: uname, password: pwd, dept, contract };
+        await setDoc(userRef, user);
+        users.push({ id: uname, ...user });
+        alert("User created under " + contract);
+        populateUsers();
+      } catch (err) {
+        console.error("Error creating user:", err);
+        alert("Failed to create user: " + err.message);
+      }
+    }
+
     async function deleteUser() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const usernameRaw = document.getElementById("delete-username").value.trim();
@@ -823,6 +864,7 @@
     window.updateTask = updateTask;
     window.submitTask = submitTask;
     window.completeTask = completeTask;
+    window.createUser = createUser;
     window.deleteUser = deleteUser;
     window.addDepartment = addDepartment;
     window.deleteDepartment = deleteDepartment;

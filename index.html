@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Manager (CEVA & Amway)</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f4f6fb;
+    }
+    .container {
+      max-width: 1200px;
+      width: 90%;
+      margin: 20px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #007bff;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      border-bottom: 3px solid #007bff;
+      padding-bottom: 8px;
+      font-size: 1.8rem;
+    }
+    .nav {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .nav button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      min-width: 120px;
+    }
+    .nav button:hover { background-color: #0056b3; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; font-size: 1rem; }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%; padding: 8px; border: 1px solid #aaa; border-radius: 5px; font-size: 0.9rem; box-sizing: border-box;
+    }
+    button { padding: 8px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    button:hover { background-color: #218838; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 2px solid #007bff; }
+    th, td { border: 1px solid #bbb; padding: 8px; text-align: left; font-size: 0.9rem; }
+    th { background-color: #007bff; color: white; }
+    tr.status-open { background-color: #fff9c4; }
+    tr.status-inprogress { background-color: #ffe0b2; }
+    tr.status-complete { background-color: #c8e6c9; }
+    .note { background-color: #f1f1f1; padding: 12px; border-left: 4px solid #007bff; margin-top: 20px; border-radius: 5px; font-size: 0.9rem; }
+    .loading-message { text-align: center; color: #007bff; font-weight: bold; margin-bottom: 15px; display: block; }
+    .loading-message.hidden { display: none; }
+    @media screen and (max-width: 768px) {
+      .container { padding: 10px; width: 95%; }
+      h1 { font-size: 1.5rem; }
+      .nav { flex-direction: column; align-items: center; }
+      .nav button { width: 100%; margin-bottom: 10px; padding: 12px; }
+      .form-group input, .form-group select, .form-group textarea { font-size: 0.85rem; }
+      button { font-size: 0.85rem; padding: 10px; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+      th, td { font-size: 0.8rem; padding: 6px; min-width: 80px; }
+      .note { font-size: 0.8rem; }
+      .loading-message { font-size: 0.85rem; }
+    }
+    @media screen and (min-width: 769px) { .nav { flex-direction: row; } table { overflow-x: visible; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Task Manager (CEVA & Amway)</h1>
+
+    <!-- Navigation -->
+    <div class="nav">
+      <button onclick="showPage('login')">Login</button>
+      <button onclick="showPage('task-assignment')">Task Assignment</button>
+      <button onclick="showPage('view-report')">View Report</button>
+      <button onclick="managerLogin()">Manager Control</button>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Login Page -->
+    <div id="login" class="page active">
+      <h2>Login</h2>
+      <div id="loading-message" class="loading-message">Loading application, please wait...</div>
+      <div class="form-group">
+        <label>User Name</label>
+        <input type="text" id="username" placeholder="Enter username" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Enter password" />
+      </div>
+      <button id="login-button" onclick="login()" disabled>Login</button>
+    </div>
+
+    <!-- Task Assignment Page -->
+    <div id="task-assignment" class="page">
+      <h2>Task Assignment</h2>
+      <div class="form-group">
+        <label>Title (required)</label>
+        <input type="text" id="task-title" />
+      </div>
+      <div class="form-group">
+        <label>Email Subject (optional)</label>
+        <input type="text" id="email-subject" />
+      </div>
+      <div class="form-group">
+        <label>Request By</label>
+        <input type="text" id="request-by" readonly />
+      </div>
+      <div class="form-group">
+        <label>Remark</label>
+        <textarea id="remark"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Department</label>
+        <select id="department">
+          <option value="">Select Department</option>
+        </select>
+      </div>
+      <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <!-- View Report Page -->
+    <div id="view-report" class="page">
+      <h2>View Report</h2>
+      <div class="form-group">
+        <label>Filter by Department</label>
+        <select id="filter-department" onchange="loadTasks()">
+          <option value="">All Departments</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Filter by Request By</label>
+        <select id="filter-request-by" onchange="loadTasks()">
+          <option value="">All Users</option>
+        </select>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Department</th>
+            <th>Title</th>
+            <th>Email Subject</th>
+            <th>Request By</th>
+            <th>Remark</th>
+            <th>Created Date</th>
+            <th>Incharge Person</th>
+            <th>Assign To</th>
+            <th>Status</th>
+            <th>Update Remark</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="task-list"></tbody>
+      </table>
+    </div>
+
+    <!-- Manager Control Page -->
+    <div id="manager-control" class="page">
+      <h2>Manager Control</h2>
+
+      <h3>Add Department</h3>
+      <div class="form-group">
+        <label>Department Name</label>
+        <input type="text" id="new-department" placeholder="Enter department name" />
+      </div>
+      <button onclick="addDepartment()">Add Department</button>
+
+      <h3>Delete Department</h3>
+      <div class="form-group">
+        <label>Select Department</label>
+        <select id="delete-department"></select>
+      </div>
+      <button onclick="deleteDepartment()">Delete Department</button>
+
+      <h3>Delete User</h3>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="delete-username" placeholder="Enter username to delete" />
+      </div>
+      <button onclick="deleteUser()">Delete User</button>
+
+      <h3>Reset Password</h3>
+      <div class="form-group"><label>Username</label><input type="text" id="reset-username" /></div>
+      <button onclick="resetPassword()">Reset</button>
+
+      <h3>Download Data</h3>
+      <div class="form-group"><label>Date Range</label><input type="text" id="date-range" /></div>
+      <div class="form-group"><label>Username</label><input type="text" id="download-username" /></div>
+      <button onclick="downloadData()">Download</button>
+
+      <h3>Delete Data by Date Range</h3>
+      <div class="form-group">
+        <label>Date Range (YYYY-MM-DD to YYYY-MM-DD)</label>
+        <input type="text" id="delete-date-range" placeholder="e.g., 2025-01-01 to 2025-12-31" />
+      </div>
+      <button onclick="deleteTasksByDateRange()">Delete Tasks</button>
+
+      <div class="note">
+        <h3>Notes</h3>
+        <ul>
+          <li>Status Colors: Open (yellow), In Progress (orange), Complete (green).</li>
+          <li>Incharge Person, Assign To, Status, and Update Remark are editable by all users.</li>
+          <li>Only the task creator can complete tasks.</li>
+          <li>Completed tasks are archived in Firestore for 6 months.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modular Firebase -->
+  <script type="module">
+    // Import modular SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      getDoc,
+      doc,
+      setDoc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCIHSP94B2A3WTEviUCxXqkL_iB1KzmJNw",
+      authDomain: "task-manager-35519.firebaseapp.com",
+      projectId: "task-manager-35519",
+      storageBucket: "task-manager-35519.firebasestorage.app",
+      messagingSenderId: "409588015669",
+      appId: "1:409588015669:web:dc81e7239c0b64bf66877c"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // App state
+    let isInitialized = false;
+    let currentUser = null;
+    let isCEVA = false;
+    let currentContract = "";
+    let departments = [];
+    let amwayDepartments = ["Amway"];
+    let users = [];
+    let tasks = [];
+
+    // ---------- Initialization & Seeding ----------
+    async function initializeData(attempt = 1, maxAttempts = 3) {
+      try {
+        console.log("Initializing app...");
+
+        // Departments
+        const deptSnap = await getDocs(collection(db, "departments"));
+        departments = deptSnap.docs.map(d => d.data().name);
+        if (departments.length === 0) {
+          departments = ["Amway"];
+          for (const d of departments) {
+            await setDoc(doc(db, "departments", d), { name: d });
+          }
+        }
+
+        // Users
+        const userSnap = await getDocs(collection(db, "users"));
+        users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (users.length === 0) {
+          const defaultUsers = [
+            { username: "admin", password: "Ceva456", dept: "Amway", contract: "CEVA" },
+            { username: "admin_alt", password: "Admin123", dept: "Amway", contract: "CEVA" },
+            { username: "ceva1", password: "123", dept: "Amway", contract: "CEVA" },
+            { username: "amway1", password: "123", dept: "Amway", contract: "AMWAY" }
+          ];
+          for (const u of defaultUsers) {
+            const userRef = doc(db, "users", u.username);
+            const check = await getDoc(userRef);
+            if (!check.exists()) {
+              await setDoc(userRef, u);
+              users.push({ id: u.username, ...u });
+            }
+          }
+        }
+
+        // Tasks
+        const taskSnap = await getDocs(collection(db, "tasks"));
+        tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (tasks.length === 0) {
+          const defaultTasks = [
+            { id: "1", department: "Amway", title: "Hiring", emailSubject: "Amway Hiring", requestBy: "ceva1", remark: "Urgent", createdDate: "2025-10-03 10:00", inchargePerson: "John", assignTo: "Jane", status: "Open", updateRemark: "", contract: "CEVA", isSynced: false },
+            { id: "2", department: "Amway", title: "System Update", emailSubject: "", requestBy: "amway1", remark: "Patch servers", createdDate: "2025-10-03 11:00", inchargePerson: "Mike", assignTo: "Sarah", status: "In Progress", updateRemark: "Working", contract: "AMWAY", isSynced: true }
+          ];
+          for (const t of defaultTasks) {
+            await setDoc(doc(db, "tasks", t.id), t);
+            tasks.push(t);
+          }
+        }
+
+        // Clean up archived tasks older than 6 months
+        await cleanOldArchivedTasks();
+
+        populateDepartments();
+        populateUsers();
+        isInitialized = true;
+        document.getElementById("login-button").disabled = false;
+        document.getElementById("loading-message").classList.add("hidden");
+        console.log("Initialization complete.");
+      } catch (err) {
+        console.error(`Initialization attempt ${attempt} failed:`, err);
+        if (attempt < maxAttempts) {
+          console.log(`Retrying initialization (${attempt + 1}/${maxAttempts})...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return initializeData(attempt + 1, maxAttempts);
+        } else {
+          alert("Failed to initialize application. Please check your network and refresh the page.");
+        }
+      }
+    }
+
+    // Function to delete archived tasks older than 6 months
+    async function cleanOldArchivedTasks() {
+      try {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const snapshot = await getDocs(collection(db, "archived_tasks"));
+        const deletePromises = snapshot.docs
+          .filter(doc => {
+            const task = doc.data();
+            const completedAt = new Date(task.completedAt);
+            return completedAt < sixMonthsAgo;
+          })
+          .map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+        console.log(`Cleaned up ${deletePromises.length} archived tasks older than 6 months.`);
+      } catch (err) {
+        console.error("Error cleaning old archived tasks:", err);
+      }
+    }
+
+    // ---------- UI Populate Helpers ----------
+    function populateDepartments() {
+      const selectors = ["department", "filter-department", "user-department", "delete-department"];
+      selectors.forEach(selector => {
+        const select = document.getElementById(selector);
+        if (!select) return;
+        if (selector !== "delete-department") {
+          select.innerHTML = '<option value="">' + (selector === "filter-department" ? "All Departments" : "Select Department") + '</option>';
+        } else {
+          select.innerHTML = '';
+        }
+        departments.forEach(dept => {
+          const option = document.createElement("option");
+          option.value = dept;
+          option.text = dept;
+          select.appendChild(option);
+        });
+      });
+    }
+
+    function populateUsers() {
+      const select = document.getElementById("filter-request-by");
+      select.innerHTML = '<option value="">All Users</option>';
+      users.forEach(user => {
+        const option = document.createElement("option");
+        option.value = user.username || user.id;
+        option.text = user.username || user.id;
+        select.appendChild(option);
+      });
+
+      const ud = document.getElementById("user-department");
+      if (ud) {
+        ud.innerHTML = '<option value="">Select Department</option>';
+        departments.forEach(dept => {
+          const opt = document.createElement("option");
+          opt.value = dept;
+          opt.text = dept;
+          ud.appendChild(opt);
+        });
+      }
+
+      const dd = document.getElementById("delete-department");
+      if (dd) {
+        dd.innerHTML = "";
+        departments.forEach(dept => {
+          const opt = document.createElement("option");
+          opt.value = dept;
+          opt.text = dept;
+          dd.appendChild(opt);
+        });
+      }
+    }
+
+    function showPage(id) {
+      if ((id === "task-assignment" || id === "view-report" || id === "manager-control") && !currentUser) {
+        alert("Please log in to access this page");
+        return showPage("login");
+      }
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      const el = document.getElementById(id);
+      if (el) el.classList.add("active");
+      if (id === "view-report" || id === "task-assignment" || id === "manager-control") {
+        populateDepartments();
+        populateUsers();
+      }
+      if (id === "view-report") loadTasks();
+    }
+
+    // ---------- Authentication & Session ----------
+    async function managerLogin() {
+      if (!currentUser) return alert("Please log in first");
+      const pwd = prompt("Enter Manager Password:");
+      if (pwd === "CevaAmway123") {
+        showPage("manager-control");
+      } else {
+        alert("Wrong manager password!");
+      }
+    }
+
+    async function login() {
+      if (!isInitialized) {
+        console.log("Login attempted before initialization");
+        return alert("Application is still loading. Please wait a moment and try again.");
+      }
+      const usernameInput = document.getElementById("username").value.trim();
+      const username = usernameInput.toLowerCase();
+      const password = document.getElementById("password").value.trim();
+      if (!username || !password) return alert("Please enter both username and password");
+
+      try {
+        console.log(`Attempting login for username: ${username}`);
+        const userRef = doc(db, "users", username);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) {
+          console.log(`Login failed: User ${username} not found`);
+          return alert("User not found");
+        }
+        const user = userSnap.data();
+        if (user.password !== password) {
+          console.log(`Login failed: Incorrect password for ${username}`);
+          return alert("Incorrect password");
+        }
+
+        currentUser = user.username || username;
+        currentContract = user.contract || (user.contract === "AMWAY" ? "AMWAY" : "CEVA");
+        isCEVA = (currentContract === "CEVA");
+
+        document.getElementById("request-by").value = currentUser;
+        console.log(`Login successful: ${currentUser} (${currentContract})`);
+        alert("Logged in as " + currentUser + " (" + currentContract + ")");
+        showPage("task-assignment");
+        clearTaskAssignmentForm();
+      } catch (err) {
+        console.error("Login error:", err);
+        alert("Login failed: Unable to connect to the server. Please check your network and try again.");
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      isCEVA = false;
+      currentContract = "";
+      document.getElementById("username").value = "";
+      document.getElementById("password").value = "";
+      alert("Logged out");
+      showPage("login");
+    }
+
+    // ---------- Tasks ----------
+    async function addTask() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const title = document.getElementById("task-title").value.trim();
+      const department = document.getElementById("department").value;
+      if (!title || !department) return alert("Title and Department are required");
+
+      let taskContract = currentContract;
+      let taskSynced = false;
+      if (isCEVA && amwayDepartments.includes(department)) {
+        taskContract = "AMWAY";
+        taskSynced = true;
+      } else if (isCEVA) {
+        taskContract = "CEVA";
+        taskSynced = false;
+      } else if (!isCEVA) {
+        taskContract = "AMWAY";
+        taskSynced = true;
+      }
+
+      const id = Date.now().toString();
+      const task = {
+        id,
+        department,
+        title,
+        emailSubject: document.getElementById("email-subject").value.trim(),
+        requestBy: currentUser,
+        remark: document.getElementById("remark").value.trim(),
+        createdDate: new Date().toLocaleString(),
+        inchargePerson: "",
+        assignTo: "",
+        status: "Open",
+        updateRemark: "",
+        contract: taskContract,
+        isSynced: taskSynced
+      };
+
+      try {
+        await setDoc(doc(db, "tasks", id), task);
+        tasks.push(task);
+        alert("Task added!");
+        showPage("view-report");
+      } catch (err) {
+        console.error("Error adding task:", err);
+        alert("Failed to add task. Please try again.");
+      }
+    }
+
+    async function loadTasks() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const tbody = document.getElementById("task-list");
+      tbody.innerHTML = "";
+      const deptFilter = document.getElementById("filter-department").value;
+      const userFilter = document.getElementById("filter-request-by").value;
+
+      try {
+        const taskSnap = await getDocs(collection(db, "tasks"));
+        tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+        tasks.forEach(task => {
+          if (currentContract === "AMWAY" && task.contract === "CEVA") return;
+          if (currentContract === "CEVA" && task.contract === "AMWAY" && !task.isSynced) return;
+          if (deptFilter && task.department !== deptFilter) return;
+          if (userFilter && task.requestBy !== userFilter) return;
+
+          const row = document.createElement("tr");
+          row.className = `status-${task.status.toLowerCase().replace(" ", "")}`;
+          row.innerHTML = `
+            <td>${escapeHtml(task.department)}</td>
+            <td>${escapeHtml(task.title)}</td>
+            <td>${escapeHtml(task.emailSubject || "")}</td>
+            <td>${escapeHtml(task.requestBy)}</td>
+            <td>${escapeHtml(task.remark || "")}</td>
+            <td>${escapeHtml(task.createdDate || "")}</td>
+            <td><input type="text" value="${escapeAttr(task.inchargePerson || "")}" onchange="updateTask('${task.id}', 'inchargePerson', this.value)"></td>
+            <td><input type="text" value="${escapeAttr(task.assignTo || "")}" onchange="updateTask('${task.id}', 'assignTo', this.value)"></td>
+            <td>
+              <select onchange="updateTask('${task.id}', 'status', this.value)">
+                <option ${task.status === "Open" ? "selected" : ""}>Open</option>
+                <option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
+              </select>
+            </td>
+            <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
+            <td>
+              <button onclick="submitTask('${task.id}')">Submit</button>
+              <button onclick="completeTask('${task.id}')" ${task.requestBy !== currentUser ? "disabled" : ""}>Complete</button>
+            </td>`;
+          tbody.appendChild(row);
+        });
+      } catch (err) {
+        console.error("Error loading tasks:", err);
+        alert("Failed to load tasks. Please try again.");
+      }
+    }
+
+    async function updateTask(id, field, value) {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      try {
+        await updateDoc(doc(db, "tasks", id), { [field]: value });
+        const task = tasks.find(t => t.id === id);
+        if (task) task[field] = value;
+        loadTasks();
+      } catch (err) {
+        console.error("Error updating task:", err);
+        alert("Failed to update task. Please try again.");
+      }
+    }
+
+    async function submitTask(id) {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      try {
+        const task = tasks.find(t => t.id === id);
+        if (!task) return alert("Task not found");
+        await updateDoc(doc(db, "tasks", id), {
+          inchargePerson: task.inchargePerson,
+          assignTo: task.assignTo,
+          status: task.status,
+          updateRemark: task.updateRemark
+        });
+        alert("Task updated!");
+        loadTasks();
+      } catch (err) {
+        console.error("Error submitting task:", err);
+        alert("Failed to submit task. Please try again.");
+      }
+    }
+
+    async function completeTask(id) {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const task = tasks.find(t => t.id === id);
+      if (!task) return alert("Task not found");
+      if (task.requestBy !== currentUser) return alert("Only the task creator can complete this task!");
+      try {
+        await setDoc(doc(db, "archived_tasks", id), {
+          ...task,
+          completedAt: new Date().toISOString()
+        });
+        await deleteDoc(doc(db, "tasks", id));
+        tasks = tasks.filter(t => t.id !== id);
+        alert("Task completed & archived!");
+        loadTasks();
+      } catch (err) {
+        console.error("Error completing task:", err);
+        alert("Failed to complete task. Please try again.");
+      }
+    }
+
+    // ---------- Manager Control ----------
+    async function deleteUser() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const usernameRaw = document.getElementById("delete-username").value.trim();
+      const username = usernameRaw.toLowerCase();
+      if (!username) return alert("Please enter username");
+      if (username === currentUser) return alert("You cannot delete your own account!");
+      try {
+        const userRef = doc(db, "users", username);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return alert("User not found");
+        const hasTasks = tasks.some(task => task.requestBy === username);
+        if (hasTasks) return alert("Cannot delete user with associated tasks");
+        await deleteDoc(userRef);
+        users = users.filter(user => user.username !== username && user.id !== username);
+        alert("User " + username + " deleted");
+        document.getElementById("delete-username").value = "";
+        populateUsers();
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        alert("Failed to delete user: " + err.message);
+      }
+    }
+
+    async function addDepartment() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const dept = document.getElementById("new-department").value.trim();
+      if (!dept) return alert("Please enter department name");
+      if (departments.includes(dept)) return alert("Department already exists");
+      try {
+        await setDoc(doc(db, "departments", dept), { name: dept });
+        departments.push(dept);
+        alert("Department " + dept + " added");
+        document.getElementById("new-department").value = "";
+        populateDepartments();
+      } catch (err) {
+        console.error("Error adding department:", err);
+        alert("Failed to add department. Please try again.");
+      }
+    }
+
+    async function deleteDepartment() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const dept = document.getElementById("delete-department").value;
+      if (!dept) return alert("Please select a department to delete");
+      if (tasks.some(task => task.department === dept)) return alert("Cannot delete department with associated tasks");
+      try {
+        await deleteDoc(doc(db, "departments", dept));
+        departments = departments.filter(d => d !== dept);
+        alert("Department " + dept + " deleted");
+        populateDepartments();
+      } catch (err) {
+        console.error("Error deleting department:", err);
+        alert("Failed to delete department. Please try again.");
+      }
+    }
+
+    async function resetPassword() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const usernameRaw = document.getElementById("reset-username").value.trim();
+      const username = usernameRaw.toLowerCase();
+      if (!username) return alert("Please enter username");
+      try {
+        const userRef = doc(db, "users", username);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return alert("User not found");
+        await updateDoc(userRef, { password: "123" });
+        alert("Password reset to '123'!");
+      } catch (err) {
+        console.error("Error resetting password:", err);
+        alert("Failed to reset password: " + err.message);
+      }
+    }
+
+    async function downloadData() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const dateRange = document.getElementById("date-range").value.trim();
+      const usernameRaw = document.getElementById("download-username").value.trim();
+      const username = usernameRaw ? usernameRaw.toLowerCase() : "";
+
+      try {
+        let q = collection(db, "tasks");
+        if (username) {
+          q = query(collection(db, "tasks"), where("requestBy", "==", username));
+        }
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map(d => d.data());
+        const archivedSnap = await getDocs(collection(db, "archived_tasks"));
+        const archived = archivedSnap.docs.map(d => d.data());
+        const blob = new Blob([JSON.stringify({ tasks: data, archived_tasks: archived }, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "tasks_export.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        alert("Data downloaded!");
+      } catch (err) {
+        console.error("Error downloading data:", err);
+        alert("Failed to download data. Please try again.");
+      }
+    }
+
+    // Function to delete tasks by date range
+    async function deleteTasksByDateRange() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const dateRange = document.getElementById("delete-date-range").value.trim();
+      if (!dateRange) return alert("Please enter a date range (e.g., 2025-01-01 to 2025-12-31)");
+
+      const [startDateStr, endDateStr] = dateRange.split(" to ").map(s => s.trim());
+      if (!startDateStr || !endDateStr) return alert("Invalid date range format. Use 'YYYY-MM-DD to YYYY-MM-DD'");
+
+      try {
+        const startDate = new Date(startDateStr);
+        const endDate = new Date(endDateStr);
+        endDate.setHours(23, 59, 59, 999); // Include full end date
+
+        if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
+          return alert("Invalid date range. Ensure dates are valid and start date is before end date.");
+        }
+
+        // Delete active tasks
+        const taskSnap = await getDocs(collection(db, "tasks"));
+        const activeDeletePromises = taskSnap.docs
+          .filter(doc => {
+            const task = doc.data();
+            const taskDate = new Date(task.createdDate);
+            return taskDate >= startDate && taskDate <= endDate;
+          })
+          .map(doc => deleteDoc(doc.ref));
+
+        // Delete archived tasks
+        const archivedSnap = await getDocs(collection(db, "archived_tasks"));
+        const archivedDeletePromises = archivedSnap.docs
+          .filter(doc => {
+            const task = doc.data();
+            const taskDate = new Date(task.completedAt);
+            return taskDate >= startDate && taskDate <= endDate;
+          })
+          .map(doc => deleteDoc(doc.ref));
+
+        await Promise.all([...activeDeletePromises, ...archivedDeletePromises]);
+
+        // Update local tasks array
+        tasks = tasks.filter(task => {
+          const taskDate = new Date(task.createdDate);
+          return !(taskDate >= startDate && taskDate <= endDate);
+        });
+
+        alert(`Deleted ${activeDeletePromises.length} active tasks and ${archivedDeletePromises.length} archived tasks in the specified date range.`);
+        loadTasks();
+      } catch (err) {
+        console.error("Error deleting tasks by date range:", err);
+        alert("Failed to delete tasks. Please try again.");
+      }
+    }
+
+    function clearTaskAssignmentForm() {
+      document.getElementById("task-title").value = "";
+      document.getElementById("email-subject").value = "";
+      document.getElementById("remark").value = "";
+      document.getElementById("department").value = "";
+    }
+
+    // ---------- Utilities ----------
+    function escapeHtml(unsafe) {
+      if (!unsafe && unsafe !== 0) return "";
+      return String(unsafe)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+    function escapeAttr(unsafe) {
+      return escapeHtml(unsafe);
+    }
+
+    // Initialize
+    initializeData();
+
+    // Expose functions to global scope
+    window.showPage = showPage;
+    window.managerLogin = managerLogin;
+    window.login = login;
+    window.logout = logout;
+    window.addTask = addTask;
+    window.loadTasks = loadTasks;
+    window.updateTask = updateTask;
+    window.submitTask = submitTask;
+    window.completeTask = completeTask;
+    window.deleteUser = deleteUser;
+    window.addDepartment = addDepartment;
+    window.deleteDepartment = deleteDepartment;
+    window.resetPassword = resetPassword;
+    window.downloadData = downloadData;
+    window.deleteTasksByDateRange = deleteTasksByDateRange;
+  </script>
+</body>
+</html>

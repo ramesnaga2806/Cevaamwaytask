@@ -213,6 +213,17 @@
       </div>
       <button onclick="deleteUser()">Delete User</button>
 
+      <h3>Change Password</h3>
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="change-username" placeholder="Enter username" />
+      </div>
+      <div class="form-group">
+        <label>New Password</label>
+        <input type="password" id="change-new-password" placeholder="Enter new password" />
+      </div>
+      <button onclick="changeUserPassword()">Change Password</button>
+
       <h3>Reset Password</h3>
       <div class="form-group"><label>Username</label><input type="text" id="reset-username" /></div>
       <button onclick="resetPassword()">Reset</button>
@@ -697,6 +708,26 @@
       }
     }
 
+    async function changeUserPassword() {
+      if (!isInitialized) return alert("Application is still loading. Please try again.");
+      const usernameRaw = document.getElementById("change-username").value.trim();
+      const username = usernameRaw.toLowerCase();
+      const newPassword = document.getElementById("change-new-password").value.trim();
+      if (!username || !newPassword) return alert("Please enter both username and new password");
+      try {
+        const userRef = doc(db, "users", username);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return alert("User not found");
+        await updateDoc(userRef, { password: newPassword });
+        alert("Password changed successfully for " + username);
+        document.getElementById("change-username").value = "";
+        document.getElementById("change-new-password").value = "";
+      } catch (err) {
+        console.error("Error changing password:", err);
+        alert("Failed to change password: " + err.message);
+      }
+    }
+
     async function addDepartment() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const dept = document.getElementById("new-department").value.trim();
@@ -866,6 +897,7 @@
     window.completeTask = completeTask;
     window.createUser = createUser;
     window.deleteUser = deleteUser;
+    window.changeUserPassword = changeUserPassword;
     window.addDepartment = addDepartment;
     window.deleteDepartment = deleteDepartment;
     window.resetPassword = resetPassword;

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Task Manager (CEVA & Amway)</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -165,6 +166,7 @@
             <th>Assign To</th>
             <th>Status</th>
             <th>Update Remark</th>
+            <th>Last Submitted At</th> <!-- New column -->
             <th>Actions</th>
           </tr>
         </thead>
@@ -334,8 +336,8 @@
         tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         if (tasks.length === 0) {
           const defaultTasks = [
-            { id: "1", department: "Amway", title: "Hiring", emailSubject: "Amway Hiring", requestBy: "ceva1", remark: "Urgent", createdDate: "2025-10-03 10:00", inchargePerson: "John", assignTo: "Jane", status: "Open", updateRemark: "", contract: "CEVA", isSynced: false },
-            { id: "2", department: "Amway", title: "System Update", emailSubject: "", requestBy: "amway1", remark: "Patch servers", createdDate: "2025-10-03 11:00", inchargePerson: "Mike", assignTo: "Sarah", status: "In Progress", updateRemark: "Working", contract: "AMWAY", isSynced: true }
+            { id: "1", department: "Amway", title: "Hiring", emailSubject: "Amway Hiring", requestBy: "ceva1", remark: "Urgent", createdDate: "2025-10-03 10:00", inchargePerson: "John", assignTo: "Jane", status: "Open", updateRemark: "", contract: "CEVA", isSynced: false, lastSubmittedAt: "" },
+            { id: "2", department: "Amway", title: "System Update", emailSubject: "", requestBy: "amway1", remark: "Patch servers", createdDate: "2025-10-03 11:00", inchargePerson: "Mike", assignTo: "Sarah", status: "In Progress", updateRemark: "Working", contract: "AMWAY", isSynced: true, lastSubmittedAt: "" }
           ];
           for (const t of defaultTasks) {
             await setDoc(doc(db, "tasks", t.id), t);
@@ -546,7 +548,8 @@
         status: "Open",
         updateRemark: "",
         contract: taskContract,
-        isSynced: taskSynced
+        isSynced: taskSynced,
+        lastSubmittedAt: "" // Initialize new field
       };
 
       try {
@@ -596,6 +599,7 @@
               </select>
             </td>
             <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
+            <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
             <td>
               <button onclick="submitTask('${task.id}')">Submit</button>
               <button onclick="completeTask('${task.id}')" ${task.requestBy !== currentUser ? "disabled" : ""}>Complete</button>
@@ -626,13 +630,16 @@
       try {
         const task = tasks.find(t => t.id === id);
         if (!task) return alert("Task not found");
+        const currentDateTime = new Date().toLocaleString();
         await updateDoc(doc(db, "tasks", id), {
           inchargePerson: task.inchargePerson,
           assignTo: task.assignTo,
           status: task.status,
-          updateRemark: task.updateRemark
+          updateRemark: task.updateRemark,
+          lastSubmittedAt: currentDateTime // Store submission time
         });
-        alert("Task updated!");
+        task.lastSubmittedAt = currentDateTime; // Update local task
+        alert(`Task updated! Current date and time: ${currentDateTime}`);
         loadTasks();
       } catch (err) {
         console.error("Error submitting task:", err);
@@ -790,17 +797,56 @@
           q = query(collection(db, "tasks"), where("requestBy", "==", username));
         }
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map(d => d.data());
+        const tasksData = snapshot.docs.map(d => d.data());
         const archivedSnap = await getDocs(collection(db, "archived_tasks"));
-        const archived = archivedSnap.docs.map(d => d.data());
-        const blob = new Blob([JSON.stringify({ tasks: data, archived_tasks: archived }, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "tasks_export.json";
-        a.click();
-        URL.revokeObjectURL(url);
-        alert("Data downloaded!");
+        const archivedData = archivedSnap.docs.map(d => d.data());
+
+        // Prepare data for Excel
+        const tasksSheet = tasksData.map(task => ({
+          ID: task.id,
+          Department: task.department,
+          Title: task.title,
+          "Email Subject": task.emailSubject || "",
+          "Request By": task.requestBy,
+          Remark: task.remark || "",
+          "Created Date": task.createdDate || "",
+          "Incharge Person": task.inchargePerson || "",
+          "Assign To": task.assignTo || "",
+          Status: task.status,
+          "Update Remark": task.updateRemark || "",
+          "Last Submitted At": task.lastSubmittedAt || "", // Include new field
+          Contract: task.contract,
+          "Is Synced": task.isSynced
+        }));
+
+        const archivedSheet = archivedData.map(task => ({
+          ID: task.id,
+          Department: task.department,
+          Title: task.title,
+          "Email Subject": task.emailSubject || "",
+          "Request By": task.requestBy,
+          Remark: task.remark || "",
+          "Created Date": task.createdDate || "",
+          "Completed At": task.completedAt || "",
+          "Incharge Person": task.inchargePerson || "",
+          "Assign To": task.assignTo || "",
+          Status: task.status,
+          "Update Remark": task.updateRemark || "",
+          "Last Submitted At": task.lastSubmittedAt || "", // Include new field
+          Contract: task.contract,
+          "Is Synced": task.isSynced
+        }));
+
+        // Create workbook and worksheets
+        const wb = XLSX.utils.book_new();
+        const wsTasks = XLSX.utils.json_to_sheet(tasksSheet);
+        const wsArchived = XLSX.utils.json_to_sheet(archivedSheet);
+        XLSX.utils.book_append_sheet(wb, wsTasks, "Tasks");
+        XLSX.utils.book_append_sheet(wb, wsArchived, "Archived Tasks");
+
+        // Generate and download Excel file
+        XLSX.writeFile(wb, "tasks_export.xls");
+        alert("Data downloaded as tasks_export.xls!");
       } catch (err) {
         console.error("Error downloading data:", err);
         alert("Failed to download data. Please try again.");

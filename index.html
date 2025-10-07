@@ -166,7 +166,7 @@
             <th>Assign To</th>
             <th>Status</th>
             <th>Update Remark</th>
-            <th>Last Submitted At</th> <!-- New column -->
+            <th>Last Submitted At</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -269,7 +269,8 @@
       updateDoc,
       deleteDoc,
       query,
-      where
+      where,
+      onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     // Your web app's Firebase configuration
@@ -295,6 +296,7 @@
     let amwayDepartments = ["Amway"];
     let users = [];
     let tasks = [];
+    let unsubscribeTasks = null; // To store the onSnapshot listener
 
     // ---------- Initialization & Seeding ----------
     async function initializeData(attempt = 1, maxAttempts = 3) {
@@ -451,7 +453,13 @@
         populateDepartments();
         populateUsers();
       }
-      if (id === "view-report") loadTasks();
+      if (id === "view-report") {
+        loadTasks();
+      } else if (unsubscribeTasks) {
+        // Unsubscribe from real-time updates when not on view-report page
+        unsubscribeTasks();
+        unsubscribeTasks = null;
+      }
     }
 
     // ---------- Authentication & Session ----------
@@ -510,6 +518,10 @@
       currentContract = "";
       document.getElementById("username").value = "";
       document.getElementById("password").value = "";
+      if (unsubscribeTasks) {
+        unsubscribeTasks();
+        unsubscribeTasks = null;
+      }
       alert("Logged out");
       showPage("login");
     }
@@ -549,7 +561,7 @@
         updateRemark: "",
         contract: taskContract,
         isSynced: taskSynced,
-        lastSubmittedAt: "" // Initialize new field
+        lastSubmittedAt: ""
       };
 
       try {
@@ -566,48 +578,59 @@
     async function loadTasks() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const tbody = document.getElementById("task-list");
-      tbody.innerHTML = "";
       const deptFilter = document.getElementById("filter-department").value;
       const userFilter = document.getElementById("filter-request-by").value;
 
+      // Clear existing listener if it exists
+      if (unsubscribeTasks) {
+        unsubscribeTasks();
+        unsubscribeTasks = null;
+      }
+
       try {
-        const taskSnap = await getDocs(collection(db, "tasks"));
-        tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+        // Set up real-time listener
+        unsubscribeTasks = onSnapshot(collection(db, "tasks"), (snapshot) => {
+          tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          tbody.innerHTML = ""; // Clear table before re-rendering
 
-        tasks.forEach(task => {
-          if (currentContract === "AMWAY" && task.contract === "CEVA") return;
-          if (currentContract === "CEVA" && task.contract === "AMWAY" && !task.isSynced) return;
-          if (deptFilter && task.department !== deptFilter) return;
-          if (userFilter && task.requestBy !== userFilter) return;
+          tasks.forEach(task => {
+            if (currentContract === "AMWAY" && task.contract === "CEVA") return;
+            if (currentContract === "CEVA" && task.contract === "AMWAY" && !task.isSynced) return;
+            if (deptFilter && task.department !== deptFilter) return;
+            if (userFilter && task.requestBy !== userFilter) return;
 
-          const row = document.createElement("tr");
-          row.className = `status-${task.status.toLowerCase().replace(" ", "")}`;
-          row.innerHTML = `
-            <td>${escapeHtml(task.department)}</td>
-            <td>${escapeHtml(task.title)}</td>
-            <td>${escapeHtml(task.emailSubject || "")}</td>
-            <td>${escapeHtml(task.requestBy)}</td>
-            <td>${escapeHtml(task.remark || "")}</td>
-            <td>${escapeHtml(task.createdDate || "")}</td>
-            <td><input type="text" value="${escapeAttr(task.inchargePerson || "")}" onchange="updateTask('${task.id}', 'inchargePerson', this.value)"></td>
-            <td><input type="text" value="${escapeAttr(task.assignTo || "")}" onchange="updateTask('${task.id}', 'assignTo', this.value)"></td>
-            <td>
-              <select onchange="updateTask('${task.id}', 'status', this.value)">
-                <option ${task.status === "Open" ? "selected" : ""}>Open</option>
-                <option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
-                <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
-              </select>
-            </td>
-            <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
-            <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
-            <td>
-              <button onclick="submitTask('${task.id}')">Submit</button>
-              <button onclick="completeTask('${task.id}')" ${task.requestBy !== currentUser ? "disabled" : ""}>Complete</button>
-            </td>`;
-          tbody.appendChild(row);
+            const row = document.createElement("tr");
+            row.className = `status-${task.status.toLowerCase().replace(" ", "")}`;
+            row.innerHTML = `
+              <td>${escapeHtml(task.department)}</td>
+              <td>${escapeHtml(task.title)}</td>
+              <td>${escapeHtml(task.emailSubject || "")}</td>
+              <td>${escapeHtml(task.requestBy)}</td>
+              <td>${escapeHtml(task.remark || "")}</td>
+              <td>${escapeHtml(task.createdDate || "")}</td>
+              <td><input type="text" value="${escapeAttr(task.inchargePerson || "")}" onchange="updateTask('${task.id}', 'inchargePerson', this.value)"></td>
+              <td><input type="text" value="${escapeAttr(task.assignTo || "")}" onchange="updateTask('${task.id}', 'assignTo', this.value)"></td>
+              <td>
+                <select onchange="updateTask('${task.id}', 'status', this.value)">
+                  <option ${task.status === "Open" ? "selected" : ""}>Open</option>
+                  <option ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                  <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
+                </select>
+              </td>
+              <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
+              <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
+              <td>
+                <button onclick="submitTask('${task.id}')">Submit</button>
+                <button onclick="completeTask('${task.id}')" ${task.requestBy !== currentUser ? "disabled" : ""}>Complete</button>
+              </td>`;
+            tbody.appendChild(row);
+          });
+        }, (err) => {
+          console.error("Error in real-time task listener:", err);
+          alert("Failed to load tasks in real-time. Please refresh the page.");
         });
       } catch (err) {
-        console.error("Error loading tasks:", err);
+        console.error("Error setting up task listener:", err);
         alert("Failed to load tasks. Please try again.");
       }
     }
@@ -615,12 +638,26 @@
     async function updateTask(id, field, value) {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       try {
-        await updateDoc(doc(db, "tasks", id), { [field]: value });
-        const task = tasks.find(t => t.id === id);
-        if (task) task[field] = value;
-        loadTasks();
+        const taskRef = doc(db, "tasks", id);
+        const taskSnap = await getDoc(taskRef);
+        if (!taskSnap.exists()) return alert("Task not found");
+        const task = taskSnap.data();
+
+        // Update the task in Firestore
+        await updateDoc(taskRef, { [field]: value });
+
+        // Update local tasks array
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+          tasks[taskIndex][field] = value;
+        }
+
+        // If the task is an Amway task and isSynced, ensure updates are reflected for both CEVA and Amway users
+        if (task.contract === "AMWAY" && task.isSynced && ["inchargePerson", "assignTo", "status", "updateRemark"].includes(field)) {
+          console.log(`Syncing ${field} update for task ${id} to CEVA and Amway users`);
+        }
       } catch (err) {
-        console.error("Error updating task:", err);
+        console.error(`Error updating task ${id} (${field}):`, err);
         alert("Failed to update task. Please try again.");
       }
     }
@@ -630,17 +667,31 @@
       try {
         const task = tasks.find(t => t.id === id);
         if (!task) return alert("Task not found");
+
         const currentDateTime = new Date().toLocaleString();
-        await updateDoc(doc(db, "tasks", id), {
+        const updates = {
           inchargePerson: task.inchargePerson,
           assignTo: task.assignTo,
           status: task.status,
           updateRemark: task.updateRemark,
-          lastSubmittedAt: currentDateTime // Store submission time
-        });
-        task.lastSubmittedAt = currentDateTime; // Update local task
+          lastSubmittedAt: currentDateTime
+        };
+
+        // Update the task in Firestore
+        await updateDoc(doc(db, "tasks", id), updates);
+
+        // Update local tasks array
+        const taskIndex = tasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+          Object.assign(tasks[taskIndex], updates);
+        }
+
+        // If the task is an Amway task and isSynced, log that updates are reflected for both CEVA and Amway users
+        if (task.contract === "AMWAY" && task.isSynced) {
+          console.log(`Syncing submit updates for task ${id} to CEVA and Amway users`);
+        }
+
         alert(`Task updated! Current date and time: ${currentDateTime}`);
-        loadTasks();
       } catch (err) {
         console.error("Error submitting task:", err);
         alert("Failed to submit task. Please try again.");
@@ -660,7 +711,6 @@
         await deleteDoc(doc(db, "tasks", id));
         tasks = tasks.filter(t => t.id !== id);
         alert("Task completed & archived!");
-        loadTasks();
       } catch (err) {
         console.error("Error completing task:", err);
         alert("Failed to complete task. Please try again.");
@@ -814,7 +864,7 @@
           "Assign To": task.assignTo || "",
           Status: task.status,
           "Update Remark": task.updateRemark || "",
-          "Last Submitted At": task.lastSubmittedAt || "", // Include new field
+          "Last Submitted At": task.lastSubmittedAt || "",
           Contract: task.contract,
           "Is Synced": task.isSynced
         }));
@@ -832,7 +882,7 @@
           "Assign To": task.assignTo || "",
           Status: task.status,
           "Update Remark": task.updateRemark || "",
-          "Last Submitted At": task.lastSubmittedAt || "", // Include new field
+          "Last Submitted At": task.lastSubmittedAt || "",
           Contract: task.contract,
           "Is Synced": task.isSynced
         }));
@@ -853,7 +903,6 @@
       }
     }
 
-    // Function to delete tasks by date range
     async function deleteTasksByDateRange() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const dateRange = document.getElementById("delete-date-range").value.trim();
@@ -900,7 +949,6 @@
         });
 
         alert(`Deleted ${activeDeletePromises.length} active tasks and ${archivedDeletePromises.length} archived tasks in the specified date range.`);
-        loadTasks();
       } catch (err) {
         console.error("Error deleting tasks by date range:", err);
         alert("Failed to delete tasks. Please try again.");

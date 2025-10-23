@@ -318,10 +318,7 @@
         users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         if (users.length === 0) {
           const defaultUsers = [
-            { username: "admin", password: "Ceva456", dept: "Amway", contract: "CEVA" },
-            { username: "admin_alt", password: "Admin123", dept: "Amway", contract: "CEVA" },
-            { username: "ceva1", password: "123", dept: "Amway", contract: "CEVA" },
-            { username: "amway1", password: "123", dept: "Amway", contract: "AMWAY" }
+            { username: "admin", password: "Ceva456", dept: "Amway", contract: "CEVA" }
           ];
           for (const u of defaultUsers) {
             const userRef = doc(db, "users", u.username);
@@ -336,16 +333,6 @@
         // Tasks
         const taskSnap = await getDocs(collection(db, "tasks"));
         tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-        if (tasks.length === 0) {
-          const defaultTasks = [
-            { id: "1", department: "Amway", title: "Hiring", emailSubject: "Amway Hiring", requestBy: "ceva1", remark: "Urgent", createdDate: "2025-10-03 10:00", inchargePerson: "John", assignTo: "Jane", status: "Open", updateRemark: "", contract: "CEVA", isSynced: false, lastSubmittedAt: "" },
-            { id: "2", department: "Amway", title: "System Update", emailSubject: "", requestBy: "amway1", remark: "Patch servers", createdDate: "2025-10-03 11:00", inchargePerson: "Mike", assignTo: "Sarah", status: "In Progress", updateRemark: "Working", contract: "AMWAY", isSynced: true, lastSubmittedAt: "" }
-          ];
-          for (const t of defaultTasks) {
-            await setDoc(doc(db, "tasks", t.id), t);
-            tasks.push(t);
-          }
-        }
 
         // Clean up archived tasks older than 6 months
         await cleanOldArchivedTasks();

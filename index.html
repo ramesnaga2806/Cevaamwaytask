@@ -10,86 +10,251 @@
       font-family: Arial, sans-serif;
       margin: 0;
       background-color: #f4f6fb;
+      font-size: 18px;
+      line-height: 1.6;
     }
     .container {
-      max-width: 1200px;
+      max-width: 1400px;
       width: 90%;
-      margin: 20px auto;
+      margin: 30px auto;
       background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      border: 2px solid #007bff;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 12px;
+      border: 3px solid #007bff;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
     }
     h1 {
       text-align: center;
       color: #333;
-      border-bottom: 3px solid #007bff;
-      padding-bottom: 8px;
+      border-bottom: 4px solid #007bff;
+      padding-bottom: 12px;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    h2 {
       font-size: 1.8rem;
+      color: #007bff;
+      margin-top: 25px;
+    }
+    h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 20px 0 10px;
     }
     .nav {
       display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 25px;
       justify-content: center;
       flex-wrap: wrap;
     }
     .nav button {
-      padding: 10px 20px;
+      padding: 14px 28px;
       background-color: #007bff;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 1rem;
-      min-width: 120px;
+      font-size: 1.2rem;
+      min-width: 160px;
+      transition: all 0.3s;
     }
-    .nav button:hover { background-color: #0056b3; }
+    .nav button:hover { 
+      background-color: #0056b3; 
+      transform: translateY(-2px);
+    }
     .page { display: none; }
     .page.active { display: block; }
-    .form-group { margin-bottom: 15px; }
-    .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; font-size: 1rem; }
-    .form-group input, .form-group select, .form-group textarea {
-      width: 100%; padding: 8px; border: 1px solid #aaa; border-radius: 5px; font-size: 0.9rem; box-sizing: border-box;
+    .form-group { 
+      margin-bottom: 20px; 
     }
-    button { padding: 8px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-    button:hover { background-color: #218838; }
-    button:disabled { background-color: #ccc; cursor: not-allowed; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; border: 2px solid #007bff; }
-    th, td { border: 1px solid #bbb; padding: 8px; text-align: left; font-size: 0.9rem; }
-    th { background-color: #007bff; color: white; }
+    .form-group label { 
+      display: block; 
+      margin-bottom: 8px; 
+      font-weight: bold; 
+      color: #333; 
+      font-size: 1.2rem;
+    }
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+      width: 100%; 
+      padding: 12px; 
+      border: 2px solid #aaa; 
+      border-radius: 8px; 
+      font-size: 1.1rem;
+      box-sizing: border-box;
+      transition: border 0.3s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+    button { 
+      padding: 12px 20px; 
+      background-color: #28a745; 
+      color: white; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-size: 1.1rem; 
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    button:hover { 
+      background-color: #218838; 
+      transform: translateY(-2px);
+    }
+    button:disabled { 
+      background-color: #ccc; 
+      cursor: not-allowed; 
+      transform: none;
+    }
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin-top: 20px; 
+      border: 3px solid #007bff; 
+      font-size: 1.1rem;
+    }
+    th, td { 
+      border: 2px solid #bbb; 
+      padding: 14px; 
+      text-align: left; 
+    }
+    th { 
+      background-color: #007bff; 
+      color: white; 
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
     tr.status-open { background-color: #fff9c4; }
     tr.status-inprogress { background-color: #ffe0b2; }
     tr.status-complete { background-color: #c8e6c9; }
-    .note { background-color: #f1f1f1; padding: 12px; border-left: 4px solid #007bff; margin-top: 20px; border-radius: 5px; font-size: 0.9rem; }
-    .loading-message { text-align: center; color: #007bff; font-weight: bold; margin-bottom: 15px; display: block; }
-    .loading-message.hidden { display: none; }
-    /* Make Update Remark textarea resizable and full-height */
-    td textarea {
+
+    /* SMALLER: Incharge Person & Assign To */
+    td input[type="text"] {
       width: 100%;
-      min-height: 60px;
-      resize: vertical;
-      font-family: inherit;
-      font-size: 0.9rem;
-      padding: 6px;
+      padding: 6px 8px;
+      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
       box-sizing: border-box;
     }
-    @media screen and (max-width: 768px) {
-      .container { padding: 10px; width: 95%; }
-      h1 { font-size: 1.5rem; }
-      .nav { flex-direction: column; align-items: center; }
-      .nav button { width: 100%; margin-bottom: 10px; padding: 12px; }
-      .form-group input, .form-group select, .form-group textarea { font-size: 0.85rem; }
-      button { font-size: 0.85rem; padding: 10px; }
-      table { display: block; overflow-x: auto; white-space: nowrap; }
-      th, td { font-size: 0.8rem; padding: 6px; min-width: 80px; }
-      .note { font-size: 0.8rem; }
-      .loading-message { font-size: 0.85rem; }
-      td textarea { min-height: 50px; font-size: 0.8rem; }
+
+    /* BIGGER: Update Remark */
+    td textarea {
+      width: 100%;
+      min-height: 120px; /* Much taller */
+      resize: vertical;
+      font-family: inherit;
+      font-size: 1.1rem;
+      padding: 12px;
+      box-sizing: border-box;
+      border: 2px solid #007bff;
+      border-radius: 6px;
+      background-color: #f9f9ff;
     }
-    @media screen and (min-width: 769px) { .nav { flex-direction: row; } table { overflow-x: visible; } }
+
+    .note { 
+      background-color: #f1f1f1; 
+      padding: 20px; 
+      border-left: 6px solid #007bff; 
+      margin-top: 30px; 
+      border-radius: 8px; 
+      font-size: 1.1rem; 
+    }
+    .note ul {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    .note li {
+      margin-bottom: 8px;
+    }
+    .loading-message { 
+      text-align: center; 
+      color: #007bff; 
+      font-weight: bold; 
+      margin-bottom: 20px; 
+      font-size: 1.3rem;
+      display: block; 
+    }
+    .loading-message.hidden { display: none; }
+
+    /* Enhanced Mobile Responsiveness */
+    @media screen and (max-width: 768px) {
+      body {
+        font-size: 16px;
+      }
+      .container { 
+        padding: 20px; 
+        width: 95%; 
+        margin: 15px auto;
+      }
+      h1 { 
+        font-size: 2rem; 
+        padding-bottom: 10px;
+      }
+      h2 { font-size: 1.5rem; }
+      h3 { font-size: 1.3rem; }
+      .nav { 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 12px;
+      }
+      .nav button { 
+        width: 100%; 
+        margin-bottom: 10px; 
+        padding: 16px; 
+        font-size: 1.1rem;
+      }
+      .form-group input, 
+      .form-group select, 
+      .form-group textarea { 
+        font-size: 1rem; 
+        padding: 14px;
+      }
+      button { 
+        font-size: 1rem; 
+        padding: 14px; 
+        width: 100%;
+      }
+      table { 
+        display: block; 
+        overflow-x: auto; 
+        white-space: nowrap; 
+        font-size: 1rem;
+      }
+      th, td { 
+        font-size: 0.95rem; 
+        padding: 10px; 
+        min-width: 100px; 
+      }
+      td input[type="text"] {
+        padding: 5px 6px;
+        font-size: 0.9rem;
+      }
+      td textarea {
+        min-height: 100px;
+        font-size: 1rem;
+        padding: 10px;
+      }
+      .note { 
+        font-size: 1rem; 
+        padding: 15px;
+      }
+      .loading-message { 
+        font-size: 1.1rem; 
+      }
+    }
+
+    @media screen and (min-width: 769px) { 
+      .nav { flex-direction: row; } 
+      table { overflow-x: visible; } 
+    }
   </style>
 </head>
 <body>
@@ -268,7 +433,6 @@
 
   <!-- Modular Firebase -->
   <script type="module">
-    // Import modular SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import {
       getFirestore,
@@ -284,7 +448,6 @@
       onSnapshot
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCIHSP94B2A3WTEviUCxXqkL_iB1KzmJNw",
       authDomain: "task-manager-35519.firebaseapp.com",
@@ -294,11 +457,9 @@
       appId: "1:409588015669:web:dc81e7239c0b64bf66877c"
     };
 
-    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // App state
     let isInitialized = false;
     let currentUser = null;
     let isCEVA = false;
@@ -307,14 +468,12 @@
     let amwayDepartments = ["Amway"];
     let users = [];
     let tasks = [];
-    let unsubscribeTasks = null; // To store the onSnapshot listener
+    let unsubscribeTasks = null;
 
-    // ---------- Initialization & Seeding ----------
     async function initializeData(attempt = 1, maxAttempts = 3) {
       try {
         console.log("Initializing app...");
 
-        // Departments
         const deptSnap = await getDocs(collection(db, "departments"));
         departments = deptSnap.docs.map(d => d.data().name);
         if (departments.length === 0) {
@@ -324,7 +483,6 @@
           }
         }
 
-        // Users
         const userSnap = await getDocs(collection(db, "users"));
         users = userSnap.docs.map(d => ({ id: d.id, ...d.data() }));
         if (users.length === 0) {
@@ -341,11 +499,9 @@
           }
         }
 
-        // Tasks
         const taskSnap = await getDocs(collection(db, "tasks"));
         tasks = taskSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-        // Clean up archived tasks older than 6 months
         await cleanOldArchivedTasks();
 
         populateDepartments();
@@ -366,7 +522,6 @@
       }
     }
 
-    // Function to delete archived tasks older than 6 months
     async function cleanOldArchivedTasks() {
       try {
         const sixMonthsAgo = new Date();
@@ -386,7 +541,6 @@
       }
     }
 
-    // ---------- UI Populate Helpers ----------
     function populateDepartments() {
       const selectors = ["department", "filter-department", "user-department", "delete-department"];
       selectors.forEach(selector => {
@@ -454,13 +608,11 @@
       if (id === "view-report") {
         loadTasks();
       } else if (unsubscribeTasks) {
-        // Unsubscribe from real-time updates when not on view-report page
         unsubscribeTasks();
         unsubscribeTasks = null;
       }
     }
 
-    // ---------- Authentication & Session ----------
     async function managerLogin() {
       if (!currentUser) return alert("Please log in first");
       const pwd = prompt("Enter Manager Password:");
@@ -473,7 +625,6 @@
 
     async function login() {
       if (!isInitialized) {
-        console.log("Login attempted before initialization");
         return alert("Application is still loading. Please wait a moment and try again.");
       }
       const usernameInput = document.getElementById("username").value.trim();
@@ -482,16 +633,13 @@
       if (!username || !password) return alert("Please enter both username and password");
 
       try {
-        console.log(`Attempting login for username: ${username}`);
         const userRef = doc(db, "users", username);
         const userSnap = await getDoc(userRef);
         if (!userSnap.exists()) {
-          console.log(`Login failed: User ${username} not found`);
           return alert("User not found");
         }
         const user = userSnap.data();
         if (user.password !== password) {
-          console.log(`Login failed: Incorrect password for ${username}`);
           return alert("Incorrect password");
         }
 
@@ -500,7 +648,6 @@
         isCEVA = (currentContract === "CEVA");
 
         document.getElementById("request-by").value = currentUser;
-        console.log(`Login successful: ${currentUser} (${currentContract})`);
         alert("Logged in as " + currentUser + " (" + currentContract + ")");
         showPage("task-assignment");
         clearTaskAssignmentForm();
@@ -524,7 +671,6 @@
       showPage("login");
     }
 
-    // ---------- Tasks ----------
     async function addTask() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const title = document.getElementById("task-title").value.trim();
@@ -579,17 +725,15 @@
       const deptFilter = document.getElementById("filter-department").value;
       const userFilter = document.getElementById("filter-request-by").value;
 
-      // Clear existing listener if it exists
       if (unsubscribeTasks) {
         unsubscribeTasks();
         unsubscribeTasks = null;
       }
 
       try {
-        // Set up real-time listener
         unsubscribeTasks = onSnapshot(collection(db, "tasks"), (snapshot) => {
           tasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          tbody.innerHTML = ""; // Clear table before re-rendering
+          tbody.innerHTML = "";
 
           tasks.forEach(task => {
             if (currentContract === "AMWAY" && task.contract === "CEVA") return;
@@ -641,16 +785,13 @@
         if (!taskSnap.exists()) return alert("Task not found");
         const task = taskSnap.data();
 
-        // Update the task in Firestore
         await updateDoc(taskRef, { [field]: value });
 
-        // Update local tasks array
         const taskIndex = tasks.findIndex(t => t.id === id);
         if (taskIndex !== -1) {
           tasks[taskIndex][field] = value;
         }
 
-        // If the task is an Amway task and isSynced, ensure updates are reflected for both CEVA and Amway users
         if (task.contract === "AMWAY" && task.isSynced && ["inchargePerson", "assignTo", "status", "updateRemark"].includes(field)) {
           console.log(`Syncing ${field} update for task ${id} to CEVA and Amway users`);
         }
@@ -675,16 +816,13 @@
           lastSubmittedAt: currentDateTime
         };
 
-        // Update the task in Firestore
         await updateDoc(doc(db, "tasks", id), updates);
 
-        // Update local tasks array
         const taskIndex = tasks.findIndex(t => t.id === id);
         if (taskIndex !== -1) {
           Object.assign(tasks[taskIndex], updates);
         }
 
-        // If the task is an Amway task and isSynced, log that updates are reflected for both CEVA and Amway users
         if (task.contract === "AMWAY" && task.isSynced) {
           console.log(`Syncing submit updates for task ${id} to CEVA and Amway users`);
         }
@@ -715,7 +853,6 @@
       }
     }
 
-    // ---------- Manager Control ----------
     async function createUser() {
       if (!isInitialized) return alert("Application is still loading. Please try again.");
       const unameRaw = document.getElementById("new-username").value.trim();
@@ -849,7 +986,6 @@
         const archivedSnap = await getDocs(collection(db, "archived_tasks"));
         const archivedData = archivedSnap.docs.map(d => d.data());
 
-        // Prepare data for Excel
         const tasksSheet = tasksData.map(task => ({
           ID: task.id,
           Department: task.department,
@@ -885,14 +1021,12 @@
           "Is Synced": task.isSynced
         }));
 
-        // Create workbook and worksheets
         const wb = XLSX.utils.book_new();
         const wsTasks = XLSX.utils.json_to_sheet(tasksSheet);
         const wsArchived = XLSX.utils.json_to_sheet(archivedSheet);
         XLSX.utils.book_append_sheet(wb, wsTasks, "Tasks");
         XLSX.utils.book_append_sheet(wb, wsArchived, "Archived Tasks");
 
-        // Generate and download Excel file
         XLSX.writeFile(wb, "tasks_export.xls");
         alert("Data downloaded as tasks_export.xls!");
       } catch (err) {
@@ -912,13 +1046,12 @@
       try {
         const startDate = new Date(startDateStr);
         const endDate = new Date(endDateStr);
-        endDate.setHours(23, 59, 59, 999); // Include full end date
+        endDate.setHours(23, 59, 59, 999);
 
         if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
           return alert("Invalid date range. Ensure dates are valid and start date is before end date.");
         }
 
-        // Delete active tasks
         const taskSnap = await getDocs(collection(db, "tasks"));
         const activeDeletePromises = taskSnap.docs
           .filter(doc => {
@@ -928,7 +1061,6 @@
           })
           .map(doc => deleteDoc(doc.ref));
 
-        // Delete archived tasks
         const archivedSnap = await getDocs(collection(db, "archived_tasks"));
         const archivedDeletePromises = archivedSnap.docs
           .filter(doc => {
@@ -940,7 +1072,6 @@
 
         await Promise.all([...activeDeletePromises, ...archivedDeletePromises]);
 
-        // Update local tasks array
         tasks = tasks.filter(task => {
           const taskDate = new Date(task.createdDate);
           return !(taskDate >= startDate && taskDate <= endDate);
@@ -960,7 +1091,6 @@
       document.getElementById("department").value = "";
     }
 
-    // ---------- Utilities ----------
     function escapeHtml(unsafe) {
       if (!unsafe && unsafe !== 0) return "";
       return String(unsafe)
@@ -974,10 +1104,8 @@
       return escapeHtml(unsafe);
     }
 
-    // Initialize
     initializeData();
 
-    // Expose functions to global scope
     window.showPage = showPage;
     window.managerLogin = managerLogin;
     window.login = login;

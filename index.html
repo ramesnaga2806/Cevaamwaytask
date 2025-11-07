@@ -66,6 +66,16 @@
     .note { background-color: #f1f1f1; padding: 12px; border-left: 4px solid #007bff; margin-top: 20px; border-radius: 5px; font-size: 0.9rem; }
     .loading-message { text-align: center; color: #007bff; font-weight: bold; margin-bottom: 15px; display: block; }
     .loading-message.hidden { display: none; }
+    /* Make Update Remark textarea resizable and full-height */
+    td textarea {
+      width: 100%;
+      min-height: 60px;
+      resize: vertical;
+      font-family: inherit;
+      font-size: 0.9rem;
+      padding: 6px;
+      box-sizing: border-box;
+    }
     @media screen and (max-width: 768px) {
       .container { padding: 10px; width: 95%; }
       h1 { font-size: 1.5rem; }
@@ -77,6 +87,7 @@
       th, td { font-size: 0.8rem; padding: 6px; min-width: 80px; }
       .note { font-size: 0.8rem; }
       .loading-message { font-size: 0.85rem; }
+      td textarea { min-height: 50px; font-size: 0.8rem; }
     }
     @media screen and (min-width: 769px) { .nav { flex-direction: row; } table { overflow-x: visible; } }
   </style>
@@ -604,7 +615,7 @@
                   <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
                 </select>
               </td>
-              <td>${escapeHtml(task.updateRemark || "")}</td>
+              <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
               <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
               <td>
                 <button onclick="submitTask('${task.id}')">Submit</button>

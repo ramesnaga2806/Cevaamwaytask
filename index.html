@@ -604,7 +604,7 @@
                   <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
                 </select>
               </td>
-              <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
+              <td>${escapeHtml(task.updateRemark || "")}</td>
               <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
               <td>
                 <button onclick="submitTask('${task.id}')">Submit</button>

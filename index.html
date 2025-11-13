@@ -119,11 +119,14 @@
       margin-top: 20px; 
       border: 3px solid #007bff; 
       font-size: 1.1rem;
+      table-layout: fixed; /* Ensures column widths are respected */
     }
     th, td { 
       border: 2px solid #bbb; 
       padding: 14px; 
       text-align: left; 
+      vertical-align: top;
+      word-wrap: break-word;
     }
     th { 
       background-color: #007bff; 
@@ -145,10 +148,17 @@
       box-sizing: border-box;
     }
 
-    /* BIGGER: Update Remark */
-    td textarea {
+    /* MAX FLEXIBLE: Update Remark Column */
+    td.update-remark {
+      min-width: 350px;
       width: 100%;
-      min-height: 180px; /* Increased from 120px – much taller */
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      flex: 3;
+    }
+    td.update-remark textarea {
+      width: 100%;
+      min-height: 200px; /* Extra tall on desktop */
       resize: vertical;
       font-family: inherit;
       font-size: 1.1rem;
@@ -227,20 +237,28 @@
         overflow-x: auto; 
         white-space: nowrap; 
         font-size: 1rem;
+        table-layout: auto;
       }
       th, td { 
         font-size: 0.95rem; 
         padding: 10px; 
-        min-width: 100px; 
+        min-width: 80px; 
       }
       td input[type="text"] {
         padding: 5px 6px;
         font-size: 0.9rem;
       }
-      td textarea {
-        min-height: 140px; /* Increased from 100px on mobile */
+      td.update-remark {
+        min-width: 250px;
+        flex: 3; /* Takes maximum available space */
+        display: block;
+        width: 100%;
+      }
+      td.update-remark textarea {
+        min-height: 160px; /* Tall even on mobile */
         font-size: 1rem;
         padding: 10px;
+        width: 100%;
       }
       .note { 
         font-size: 1rem; 
@@ -759,7 +777,7 @@
                   <option ${task.status === "Complete" ? "selected" : ""}>Complete</option>
                 </select>
               </td>
-              <td><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
+              <td class="update-remark"><textarea onchange="updateTask('${task.id}', 'updateRemark', this.value)">${escapeAttr(task.updateRemark || "")}</textarea></td>
               <td>${escapeHtml(task.lastSubmittedAt || "")}</td>
               <td>
                 <button onclick="submitTask('${task.id}')">Submit</button>
